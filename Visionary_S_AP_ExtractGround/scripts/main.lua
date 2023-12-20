@@ -1,19 +1,19 @@
 --[[----------------------------------------------------------------------------
-  
+
   Application Name: Visionary_S_AP_ExtractGround
-  
+
   Summary:
   Extract a pointcloud only containing the ground surface and small things on it
-  
+
   Description:
   This App searches for flat regions in the Z image and assumes the biggest flat region is the ground.
   The ground part of the image will be transfered to a pointcloud and a will be fitted to it.
-  
+
   How to run:
   Start by running the app (F5) or debugging (F7+F10).
   Set a breakpoint on the first row inside the main function to debug step-by-step.
   See the results in the different image viewer on the DevicePage.
-  
+
 ------------------------------------------------------------------------------]]
 --Start of Global Scope---------------------------------------------------------
 -- Variables, constants, serves etc. should be declared here.
@@ -48,12 +48,13 @@ local view3D = View.create("view3D")
 local pixelRegionDeco = View.PixelRegionDecoration.create()
 pixelRegionDeco:setColor(0, 127, 195, 150)
 
--- start the camera in the main function when the whole script was parsed
+---start the camera in the main function when the whole script was parsed
 local function main()
   camera:start()
 end
 
---@handleOnNewImage(image[+]:Image, sensordata:SensorData)
+---@param image Image[]
+---@param sensordata:SensorData
 function handleOnNewImage(image, _)
   local starttime = DateTime.getTimestamp()
 
@@ -72,21 +73,21 @@ function handleOnNewImage(image, _)
   -- fit a plane to the points of the surface
   local points, _ = surfacePointCloud:toPoints()
   local surfacePlane = Shape3D.fitPlane(points, "TRIMMED", "ABSOLUTE")
-  
+
   -- Print the parameters of the plane to the console
   --local nx, ny, nz, dist = boxPlane:getPlaneParameters()
   --print(string.format("boxPlane --> nx: %.1f, ny: %.1f, nz: %.1f, distance: %.1f", nx, ny, nz, dist))
 
   local endtime = DateTime.getTimestamp()
   Log.warning("processing time: " .. (endtime - starttime) .. " ms" )
-  
+
   view2D:clear()
   view3D:clear()
 
   -- visualize RGB image with overlay for the found surface
   view2D:addImage(image[2])
   view2D:addPixelRegion(surfaceRegions[1], pixelRegionDeco)
-  
+
   -- visualize the surface pointcloud with the matching plane for these points
   view3D:addPointCloud(surfacePointCloud)
   if surfacePlane ~= nil then
